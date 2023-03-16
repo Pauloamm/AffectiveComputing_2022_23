@@ -3,6 +3,7 @@ from sklearnex import patch_sklearn # <3 <3 <3
 import os
 import random
 import pandas as pd
+import VoiceToText
 
 ##Sentiment
 from textblob import TextBlob
@@ -26,18 +27,27 @@ from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
+
 def main():
 
     dataset = GetDataset()
     datasetSize = dataset.shape[0]
-    randomSentenceToAnalyze= dataset[0][random.randint(0, datasetSize)]
 
+    # Emotion
+    vectorizer, model= ModelsTraining(dataset)
+
+    VoiceToText.GetVoiceInText(vectorizer, model)
+
+
+
+    #randomSentenceToAnalyze= dataset[0][random.randint(0, datasetSize)]
+    #randomSentenceToAnalyze= "I am so sad now"
 
     #Polarity/Subjectivity
-    getAnalysis(randomSentenceToAnalyze)
+    #getAnalysis(randomSentenceToAnalyze)
 
-    #Emotion
-    ModelsTraining(dataset,randomSentenceToAnalyze)
+
 
     #blob = TextBlob('His naime ise John')
     #print(blob.correct())
@@ -108,11 +118,11 @@ def VADERAnalysis(text):
     else:
         print("Neutral")
 
-def ModelsTraining(datasetForTraining, sentenceToAnalyze):
+def ModelsTraining(datasetForTraining):
 
     patch_sklearn()
     from sklearn.naive_bayes import MultinomialNB, BernoulliNB
-    import xgboost as xgb
+    #import xgboost as xgb
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.svm import LinearSVC, SVC
 
@@ -133,7 +143,6 @@ def ModelsTraining(datasetForTraining, sentenceToAnalyze):
 
     for _, value in yValuesRaw.items():
         yValues.append(value)
-
 
     vectorizer = CountVectorizer(min_df=2,ngram_range=(2,2)) #eliminates low occurrence words(2 or less sentences)
     vectorizer.fit_transform(xValues) # fits vocabulary
@@ -171,7 +180,7 @@ def ModelsTraining(datasetForTraining, sentenceToAnalyze):
         print("\nClassification Report of {}".format(modelName))
         print("Accuracy: " +str(accuracy) + "\n\n")
 
-        if accuracy>bestAccuracy:
+        if accuracy >= bestAccuracy:
             bestAccuracy=accuracy
             bestModel=model
 
@@ -179,11 +188,12 @@ def ModelsTraining(datasetForTraining, sentenceToAnalyze):
         cm = confusion_matrix(yValuesToTest, yValuesPrediction, labels=classNames)
         PlotConfusionMatrix(classNames,cm,modelName)
 
-    #BEST MODEL -> LINEAR SVC
+    return vectorizer,bestModel
+
+
+def GetEmotionPrediction(sentenceToAnalyze, vectorizer,bestModel):
     prediction = bestModel.predict(vectorizer.transform([sentenceToAnalyze]))
     print("Emotion predicted by best model: {}".format(prediction))
-
-
 
 #https://stackoverflow.com/questions/65618137/confusion-matrix-for-multiple-classes-in-python
 def PlotConfusionMatrix(classNames,confusionMatrix,modelName):
@@ -204,7 +214,7 @@ def PlotConfusionMatrix(classNames,confusionMatrix,modelName):
     plt.yticks(rotation=0)
 
     plt.title(modelName, fontsize=20)
-    plt.savefig(modelName + '_'+'CM.png')
+    #plt.savefig(modelName + '_'+'CM.png')
     #plt.show()
 
 
