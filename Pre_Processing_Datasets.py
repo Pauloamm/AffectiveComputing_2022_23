@@ -12,6 +12,12 @@ RAVNESS = "DATASETS/RAVNESS/"
 SAVEE = "DATASETS/SAVEE/"
 CREMA = "DATASETS/CREMA-D/"
 
+
+LOAD_TESS = True
+LOAD_RAVNESS=True
+LOAD_SAVEE = True
+LOAD_CREMA = True
+
 # SAVEE
 dir_list = os.listdir(SAVEE)
 # parse the filename to get the emotions
@@ -19,19 +25,19 @@ emotions = []
 dir = []
 for i in dir_list:
     if i[-8:-6] == '_a':
-        emotions.append('male_angry')
+        emotions.append('angry')
     elif i[-8:-6] == '_d':
-        emotions.append('male_disgust')
+        emotions.append('disgust')
     elif i[-8:-6] == '_f':
-        emotions.append('male_fear')
+        emotions.append('fear')
     elif i[-8:-6] == '_h':
-        emotions.append('male_happy')
+        emotions.append('happy')
     elif i[-8:-6] == '_n':
-        emotions.append('male_neutral')
+        emotions.append('neutral')
     elif i[-8:-6] == 'sa':
-        emotions.append('male_sad')
+        emotions.append('sad')
     elif i[-8:-6] == 'su':
-        emotions.append('male_surprise')
+        emotions.append('surprise')
     else:
         emotions.append('error')
     dir.append(SAVEE + i)
@@ -56,9 +62,9 @@ for i in dir_list:
         emotions.append(int(part[2]))
         temp = int(part[6])
         if temp % 2 == 0:
-            temp = "female"
+            temp = ""
         else:
-            temp = "male"
+            temp = ""
         gender.append(temp)
         dir.append(RAVNESS + i + '/' + f)
 
@@ -67,7 +73,7 @@ RAVNESS_df = RAVNESS_df.replace(
     {1: 'neutral', 2: 'neutral', 3: 'happy', 4: 'sad', 5: 'angry', 6: 'fear', 7: 'disgust', 8: 'surprise'})
 RAVNESS_df = pd.concat([pd.DataFrame(gender), RAVNESS_df], axis=1)
 RAVNESS_df.columns = ['gender', 'emotion']
-RAVNESS_df['labels'] = RAVNESS_df.gender + '_' + RAVNESS_df.emotion
+RAVNESS_df['labels'] = RAVNESS_df.gender  + RAVNESS_df.emotion
 RAVNESS_df['source'] = 'RAVDESS'
 RAVNESS_df = pd.concat([RAVNESS_df, pd.DataFrame(dir, columns=['path'])], axis=1)
 RAVNESS_df = RAVNESS_df.drop(['gender', 'emotion'], axis=1)
@@ -84,19 +90,19 @@ for i in dir_list:
     filename = os.listdir(TESS + i)
     for f in filename:
         if i == 'OAF_angry' or i == 'YAF_angry':
-            emotions.append('female_angry')
+            emotions.append('angry')
         elif i == 'OAF_disgust' or i == 'YAF_disgust':
-            emotions.append('female_disgust')
+            emotions.append('disgust')
         elif i == 'OAF_Fear' or i == 'YAF_fear':
-            emotions.append('female_fear')
+            emotions.append('fear')
         elif i == 'OAF_happy' or i == 'YAF_happy':
-            emotions.append('female_happy')
+            emotions.append('happy')
         elif i == 'OAF_neutral' or i == 'YAF_neutral':
-            emotions.append('female_neutral')
+            emotions.append('neutral')
         elif i == 'OAF_Pleasant_surprise' or i == 'YAF_pleasant_surprised':
-            emotions.append('female_surprise')
+            emotions.append('surprise')
         elif i == 'OAF_Sad' or i == 'YAF_sad':
-            emotions.append('female_sad')
+            emotions.append('sad')
         else:
             emotions.append('Unknown')
         dir.append(TESS + i + "/" + f)
@@ -126,29 +132,29 @@ for i in dir_list:
         temp = 'male'
     gender.append(temp)
     if part[2] == 'SAD' and temp == 'male':
-        emotions.append('male_sad')
+        emotions.append('sad')
     elif part[2] == 'ANG' and temp == 'male':
-        emotions.append('male_angry')
+        emotions.append('angry')
     elif part[2] == 'DIS' and temp == 'male':
-        emotions.append('male_disgust')
+        emotions.append('disgust')
     elif part[2] == 'FEA' and temp == 'male':
-        emotions.append('male_fear')
+        emotions.append('fear')
     elif part[2] == 'HAP' and temp == 'male':
-        emotions.append('male_happy')
+        emotions.append('happy')
     elif part[2] == 'NEU' and temp == 'male':
-        emotions.append('male_neutral')
+        emotions.append('neutral')
     elif part[2] == 'SAD' and temp == 'female':
-        emotions.append('female_sad')
+        emotions.append('sad')
     elif part[2] == 'ANG' and temp == 'female':
-        emotions.append('female_angry')
+        emotions.append('angry')
     elif part[2] == 'DIS' and temp == 'female':
-        emotions.append('female_disgust')
+        emotions.append('disgust')
     elif part[2] == 'FEA' and temp == 'female':
-        emotions.append('female_fear')
+        emotions.append('fear')
     elif part[2] == 'HAP' and temp == 'female':
-        emotions.append('female_happy')
+        emotions.append('happy')
     elif part[2] == 'NEU' and temp == 'female':
-        emotions.append('female_neutral')
+        emotions.append('neutral')
     else:
         emotions.append('Unknown')
     dir.append(CREMA + i)
@@ -159,7 +165,16 @@ CREMA_df = pd.concat([CREMA_df, pd.DataFrame(dir, columns=['path'])], axis=1)
 CREMA_df.labels.value_counts()
 
 ##JOIN DATASETS
-df = pd.concat([SAVEE_df, RAVNESS_df, TESS_df, CREMA_df], axis = 0)
+df = pd.DataFrame()
+if LOAD_SAVEE:
+    df = pd.concat([SAVEE_df], axis=0)
+if LOAD_TESS:
+    df = pd.concat([df, TESS_df], axis=0)
+if LOAD_RAVNESS:
+    df = pd.concat([df, RAVNESS_df], axis=0)
+if LOAD_CREMA:
+    df = pd.concat([df, CREMA_df], axis = 0)
+
 print(df.labels.value_counts())
 df.head()
-df.to_csv("DATASET_PATHS.csv",index=False)
+df.to_csv("DATASET_PATHS_MalenFemale.csv",index=False)
