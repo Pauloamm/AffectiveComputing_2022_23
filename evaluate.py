@@ -1,3 +1,4 @@
+import numpy
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -69,6 +70,7 @@ lb = LabelEncoder()
 y_train = np_utils.to_categorical(lb.fit_transform(y_train))
 y_test = np_utils.to_categorical(lb.fit_transform(y_test))
 
+np.save('classes.npy',lb.classes_)
 print(X_train.shape)
 print(lb.classes_)
 

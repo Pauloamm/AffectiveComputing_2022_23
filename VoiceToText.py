@@ -1,3 +1,5 @@
+import os
+from VoiceModelPrediction import GetVoicePrediction
 import speech_recognition as sr
 import pyttsx3
 import main
@@ -16,7 +18,6 @@ def SpeakText(command):
 def GetVoiceInText(vectorizer, model):
     r = sr.Recognizer()
 
-    print("You may now talk")
 
     while (1):
         try:
@@ -27,9 +28,10 @@ def GetVoiceInText(vectorizer, model):
                 # wait for a second to let the recognizer
                 # adjust the energy threshold based on
                 # the surrounding noise level
-                r.adjust_for_ambient_noise(source2, duration=0.2)
+                r.adjust_for_ambient_noise(source2, duration=1)
 
                 # listens for the user's input
+                print("You may now talk")
                 audio2 = r.listen(source2)
 
                 # Using google to recognize audio
@@ -38,6 +40,12 @@ def GetVoiceInText(vectorizer, model):
                 print("Did you say ", MyText)
                 SpeakText(MyText)
 
+
+                #Store audio and get analysis from voice and text
+
+
+                voiceRecordingPath = StoreAudioFile(audio2)
+                GetVoicePrediction(voiceRecordingPath)
                 main.getAnalysis(MyText)
                 main.GetEmotionPrediction(MyText,vectorizer,model)
 
@@ -47,3 +55,12 @@ def GetVoiceInText(vectorizer, model):
 
         except sr.UnknownValueError:
             print("unknown error occurred")
+
+def StoreAudioFile(audioToStore):
+    rootPath = os.getcwd()
+    voiceRecordingFileName= 'audio_file.wav'
+    voiceRecordingPath = os.path.join(rootPath,'VoiceRecordings',voiceRecordingFileName)
+
+    with open(voiceRecordingPath, "wb") as file: file.write(audioToStore.get_wav_data())
+
+    return voiceRecordingPath
